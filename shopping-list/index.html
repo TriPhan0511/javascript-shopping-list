@@ -11,7 +11,7 @@
       referrerpolicy="no-referrer"
     />
     <link rel="stylesheet" href="style.css" />
-    <title>Shopping List - DIY</title>
+    <title>02-remove-clear-items</title>
   </head>
   <body>
     <div class="container">
@@ -20,7 +20,7 @@
         <h1>Shopping List</h1>
       </header>
 
-      <form>
+      <form id="add-item-form">
         <div class="form-control">
           <input
             type="text"
@@ -45,31 +45,17 @@
         />
       </div>
 
-      <ul id="item-list">
+      <ul id="item-list"></ul>
+
+      <!-- <ul id="item-list">
         <li>
           Item One
           <button class="remove-item btn-link red-text"><i class="fa-solid fa-xmark"></i></button>
         </li>
-        <li>
-          Item Two
-          <button class="remove-item btn-link red-text"><i class="fa-solid fa-xmark"></i></button>
-        </li>
-        <li>
-          Item Three
-          <button class="remove-item btn-link red-text"><i class="fa-solid fa-xmark"></i></button>
-        </li>
-        <li>
-          Item Four
-          <button class="remove-item btn-link red-text"><i class="fa-solid fa-xmark"></i></button>
-        </li>
-        <li>
-          Item Five
-          <button class="remove-item btn-link red-text"><i class="fa-solid fa-xmark"></i></button>
-        </li>
-      </ul>
+      </ul> -->
 
       <div>
-        <button class="clear-all">Clear All</button>
+        <button id="clear-all" class="clear-all">Clear All</button>
       </div>
     </div>
 
