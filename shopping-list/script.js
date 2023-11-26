@@ -1,11 +1,40 @@
 // Constants
 const SHOPPING_LIST = 'shoppingList'
 
+// Varibale
+let isUpdate = false
+
 // Elements
 const addItemForm = document.querySelector('#add-item-form')
 const list = document.querySelector('#item-list')
 const clearAllButton = document.querySelector('#clear-all')
 const filter = document.querySelector('#filter')
+
+// Update item
+function updateItem(e) {
+  if (e.target.tagName === 'LI') {
+    // console.log(e.type)
+    const inputItem = document.querySelector('#input-item')
+    if (inputItem) {
+      const text = e.target.textContent
+      inputItem.value = text
+      inputItem.focus()
+      const submitButton = document.querySelector('button[type=submit]')
+      if (submitButton) {
+        submitButton.innerHTML = ''
+        submitButton.appendChild(createIcon('fa-solid fa-check'))
+        submitButton.appendChild(document.createTextNode(' Update'))
+        isUpdate = true
+        // let shoppingList = JSON.parse(localStorage.getItem(SHOPPING_LIST)) || []
+        // shoppingList.map((item) => {
+        //   if (item === text) {
+        //     item = inputItem.value
+        //   }
+        // })
+      }
+    }
+  }
+}
 
 // Filter item
 function filterItem(e) {
@@ -30,7 +59,6 @@ function removeItem(e) {
     let list = JSON.parse(localStorage.getItem(SHOPPING_LIST))
     if (list) {
       list = list.filter((item) => item !== li.textContent)
-      console.log(list)
       localStorage.setItem(SHOPPING_LIST, JSON.stringify(list))
     }
     // Remove item in DOM
@@ -72,8 +100,9 @@ function addItem(e) {
     addItemIntoLocalStorage(text, SHOPPING_LIST)
     // Add item into DOM
     addItemIntoDOM(text, list)
-    // Reset form's input
+    // Reset and set focus form's input
     inputItem.value = ''
+    inputItem.focus()
   }
 }
 
@@ -143,6 +172,7 @@ if (clearAllButton) {
 // Remove item
 if (list) {
   list.addEventListener('click', removeItem)
+  list.addEventListener('click', updateItem)
 }
 
 // Filter item
