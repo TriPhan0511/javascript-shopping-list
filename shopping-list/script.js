@@ -74,23 +74,6 @@ function addOrUpdateItem(e) {
         }
       }
       addItem(text, SHOPPING_LIST)
-      // // Add item into localStorage
-      // addItemIntoLocalStorage(text, SHOPPING_LIST)
-      // // Add item into DOM
-      // let list = document.querySelector('#item-list')
-      // if (list) {
-      //   addItemIntoDOM(text, list)
-      // } else {
-      //   list = document.createElement('ul')
-      //   list.setAttribute('id', 'item-list')
-      //   addItemIntoDOM(text, list)
-      //   appendAndAddEventListenersToElements(
-      //     container,
-      //     createFilterDiv(),
-      //     list,
-      //     createClearButton()
-      //   )
-      // }
     } else {
       // Update an item
       let shoppingList = JSON.parse(localStorage.getItem(SHOPPING_LIST)) || []
@@ -119,17 +102,17 @@ function addItem(text, shoppingList) {
   // Add item into DOM
   let list = document.querySelector('#item-list')
   if (list) {
-    addItemIntoDOM(text, list)
+    addItemIntoList(text, list)
   } else {
     list = document.createElement('ul')
     list.setAttribute('id', 'item-list')
-    addItemIntoDOM(text, list)
+    addItemIntoList(text, list)
     appendAndAddEventListenersToElements(container, createFilterDiv(), list, createClearButton())
   }
 }
 
-// Add item into DOM
-function addItemIntoDOM(text, list) {
+// Add item into list
+function addItemIntoList(text, list) {
   const item = createItem(text)
   if (list) {
     list.appendChild(item)
