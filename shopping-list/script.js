@@ -7,41 +7,47 @@ let editedItemText = ''
 let editedItem
 
 // Elements
+const container = document.querySelector('.container')
 const addItemForm = document.querySelector('#add-item-form')
-const list = document.querySelector('#item-list')
-const clearAllButton = document.querySelector('#clear-all')
-const filter = document.querySelector('#filter')
 const inputItem = document.querySelector('#input-item')
 const submitButton = document.querySelector('button[type=submit]')
+
+// Add DOMContentLoaded event listeners to window object
+window.addEventListener('DOMContentLoaded', () => {
+  loadData()
+  if (addItemForm) {
+    addItemForm.addEventListener('submit', addOrUpdateItem)
+  }
+})
+
+function appendAndAddEventListenersToElements(container, filter, list, clearButton) {
+  // Append elements into DOM
+  container.appendChild(filter)
+  container.appendChild(list)
+  container.appendChild(clearButton)
+  // Add event listeners to elements
+  clearButton.addEventListener('click', () => {
+    clearAll(filter, list, clearButton)
+  })
+  list.addEventListener('click', (e) => {
+    removeItem(e, list, filter, clearButton)
+  })
+  list.addEventListener('click', prepareUpdateItem)
+  filter.addEventListener('keyup', (e) => {
+    filterItems(e, list)
+  })
+}
 
 // Load data from localStorage
 function loadData() {
   const shoppingList = JSON.parse(localStorage.getItem(SHOPPING_LIST)) || []
-  const items = shoppingList.map((item) => {
-    return createListItem(item)
-  })
-  list.innerHTML = ''
-  items.forEach((item) => {
-    list.appendChild(item)
-  })
-}
-
-// Update item
-function prepareUpdateItem(e) {
-  if (e.target.tagName === 'LI') {
-    editedItem = e.target
-    editedItemText = e.target.textContent
-    if (inputItem) {
-      inputItem.value = e.target.textContent
-      inputItem.focus()
-    }
-    // const submitButton = document.querySelector('button[type=submit]')
-    if (submitButton) {
-      submitButton.innerHTML = ''
-      submitButton.appendChild(createIcon('fa-solid fa-check'))
-      submitButton.appendChild(document.createTextNode(' Update'))
-      isUpdate = true
-    }
+  if (shoppingList.length !== 0) {
+    appendAndAddEventListenersToElements(
+      container,
+      createFilterDiv(),
+      createList(shoppingList),
+      createClearButton()
+    )
   }
 }
 
@@ -67,10 +73,24 @@ function addOrUpdateItem(e) {
           return
         }
       }
-      // Add item into localStorage
-      addItemIntoLocalStorage(text, SHOPPING_LIST)
-      // Add item into DOM
-      addItemIntoDOM(text, list)
+      addItem(text, SHOPPING_LIST)
+      // // Add item into localStorage
+      // addItemIntoLocalStorage(text, SHOPPING_LIST)
+      // // Add item into DOM
+      // let list = document.querySelector('#item-list')
+      // if (list) {
+      //   addItemIntoDOM(text, list)
+      // } else {
+      //   list = document.createElement('ul')
+      //   list.setAttribute('id', 'item-list')
+      //   addItemIntoDOM(text, list)
+      //   appendAndAddEventListenersToElements(
+      //     container,
+      //     createFilterDiv(),
+      //     list,
+      //     createClearButton()
+      //   )
+      // }
     } else {
       // Update an item
       let shoppingList = JSON.parse(localStorage.getItem(SHOPPING_LIST)) || []
@@ -81,7 +101,6 @@ function addOrUpdateItem(e) {
         return item
       })
       localStorage.setItem(SHOPPING_LIST, JSON.stringify(shoppingList))
-      // loadData()
       editedItem.innerText = inputItem.value.trim()
       submitButton.innerHTML = ''
       submitButton.appendChild(createIcon('fa-solid fa-plus'))
@@ -94,8 +113,116 @@ function addOrUpdateItem(e) {
   }
 }
 
-// Filter item
-function filterItem(e) {
+function addItem(text, shoppingList) {
+  // Add item into localStorage
+  addItemIntoLocalStorage(text, shoppingList)
+  // Add item into DOM
+  let list = document.querySelector('#item-list')
+  if (list) {
+    addItemIntoDOM(text, list)
+  } else {
+    list = document.createElement('ul')
+    list.setAttribute('id', 'item-list')
+    addItemIntoDOM(text, list)
+    appendAndAddEventListenersToElements(container, createFilterDiv(), list, createClearButton())
+  }
+}
+
+// Add item into DOM
+function addItemIntoDOM(text, list) {
+  const item = createItem(text)
+  if (list) {
+    list.appendChild(item)
+  }
+}
+
+function createList(shoppingList) {
+  const list = document.createElement('ul')
+  list.setAttribute('id', 'item-list')
+  shoppingList
+    .map((item) => createItem(item))
+    .forEach((item) => {
+      list.appendChild(item)
+    })
+  return list
+}
+
+function createFilterDiv() {
+  const div = document.createElement('div')
+  div.className = 'filter'
+  const inp = document.createElement('input')
+  inp.className = 'form-input-filter'
+  inp.setAttribute('type', 'text')
+  inp.setAttribute('name', 'filter')
+  inp.setAttribute('id', 'filter')
+  inp.setAttribute('placeholder', 'Filter Items')
+  div.appendChild(inp)
+  return div
+}
+
+function createClearButton() {
+  const button = document.createElement('button')
+  button.setAttribute('id', 'clear-all')
+  button.className = 'clear-all'
+  button.appendChild(document.createTextNode('Clear All'))
+  return button
+}
+
+// Update item
+function prepareUpdateItem(e) {
+  if (e.target.tagName === 'LI') {
+    editedItem = e.target
+    editedItemText = e.target.textContent
+    if (inputItem) {
+      inputItem.value = e.target.textContent
+      inputItem.focus()
+    }
+    // const submitButton = document.querySelector('button[type=submit]')
+    if (submitButton) {
+      submitButton.innerHTML = ''
+      submitButton.appendChild(createIcon('fa-solid fa-check'))
+      submitButton.appendChild(document.createTextNode(' Update'))
+      isUpdate = true
+    }
+  }
+}
+
+// Remove item
+function removeItem(e, list, filter, clearButton) {
+  if (e.target.tagName === 'I') {
+    const li = e.target.parentElement.parentElement
+    // Remove item in localStorage
+    let shoppingList = JSON.parse(localStorage.getItem(SHOPPING_LIST))
+    if (shoppingList) {
+      shoppingList = shoppingList.filter((item) => item !== li.textContent)
+      localStorage.setItem(SHOPPING_LIST, JSON.stringify(shoppingList))
+    }
+    // Remove item in DOM
+    li.remove()
+    // Check
+    const items = list.querySelectorAll('li')
+    if (items.length === 0) {
+      removeElements(filter, list, clearButton)
+    }
+  }
+}
+
+function removeElements(filter, list, clearButton) {
+  filter.remove()
+  list.remove()
+  clearButton.remove()
+}
+
+// Clear all items
+function clearAll(filter, list, clearButton) {
+  // Remove shopping list from localStorage
+  localStorage.removeItem(SHOPPING_LIST)
+  // Remove elements from DOM
+  removeElements(filter, list, clearButton)
+}
+
+// Filter items
+function filterItems(e, list) {
   let shoppingList = JSON.parse(localStorage.getItem(SHOPPING_LIST)) || []
   if (shoppingList.length > 0) {
     shoppingList = shoppingList.filter((item) =>
@@ -103,42 +230,9 @@ function filterItem(e) {
     )
     list.innerHTML = ''
     shoppingList.forEach((item) => {
-      const li = createListItem(item)
+      const li = createItem(item)
       list.appendChild(li)
     })
-  }
-}
-
-// Remove item
-function removeItem(e) {
-  if (e.target.tagName === 'I') {
-    const li = e.target.parentElement.parentElement
-    // Remove item in localStorage
-    let list = JSON.parse(localStorage.getItem(SHOPPING_LIST))
-    if (list) {
-      list = list.filter((item) => item !== li.textContent)
-      localStorage.setItem(SHOPPING_LIST, JSON.stringify(list))
-    }
-    // Remove item in DOM
-    li.remove()
-  }
-}
-
-// Clear all items
-function clearAll() {
-  // Remove shopping list in localStorage
-  localStorage.removeItem(SHOPPING_LIST)
-  // Remove list items in DOM
-  if (list) {
-    list.innerHTML = ''
-  }
-}
-
-// Add item into DOM
-function addItemIntoDOM(text, list) {
-  const item = createListItem(text)
-  if (list) {
-    list.appendChild(item)
   }
 }
 
@@ -150,7 +244,7 @@ function addItemIntoLocalStorage(itemText, shoppingList) {
 }
 
 // Create a list item
-function createListItem(text = 'item') {
+function createItem(text = 'item') {
   const item = document.createElement('li')
   item.appendChild(document.createTextNode(text))
   item.appendChild(createButton('remove-item btn-link red-text'))
@@ -171,30 +265,4 @@ function createIcon(classes) {
   const icon = document.createElement('i')
   icon.className = classes
   return icon
-}
-
-// Add event listeners to elements
-
-// DOMContentLoaded event
-window.addEventListener('DOMContentLoaded', loadData)
-
-// Add an item
-if (addItemForm) {
-  addItemForm.addEventListener('submit', addOrUpdateItem)
-}
-
-// Clear all items
-if (clearAllButton) {
-  clearAllButton.addEventListener('click', clearAll)
-}
-
-// Remove item
-if (list) {
-  list.addEventListener('click', removeItem)
-  list.addEventListener('click', prepareUpdateItem)
-}
-
-// Filter item
-if (filter) {
-  filter.addEventListener('keyup', filterItem)
 }
