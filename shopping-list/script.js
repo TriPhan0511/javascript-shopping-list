@@ -5,6 +5,8 @@ const LIST_ID = 'item-list'
 // Variables
 let isUpdated = false
 let editedText = ''
+let editedElement
+let submitButton
 
 window.addEventListener('DOMContentLoaded', () => {
   const container = document.querySelector('.container')
@@ -19,35 +21,56 @@ window.addEventListener('DOMContentLoaded', () => {
       addItem(e, input, container)
     })
     form.addEventListener('submit', (e) => {
-      updateItem(e)
+      updateItem(e, input)
     })
   }
 })
 
-function updateItem(e) {
+function updateItem(e, input) {
   e.preventDefault()
   if (isUpdated) {
-    // console.log(editedText)
-    const input = document.querySelector(`#${LIST_ID}`)
+    const text = input.value.trim()
     let shoppingList = JSON.parse(localStorage.getItem(SHOPPING_LIST)) || []
-    shoppingList = shoppingList.map((item) => {
-      if (item === editedText) {
-        // item =
-      }
-    })
+    // Validate
+    if (text === '') {
+      alert("Please enter an item's title!")
+      return
+    }
+    if (text === editedText) {
+      alert("The new item's title is same as the old one.\nPlease enter another title.")
+      return
+    }
+    if (shoppingList.includes(text)) {
+      alert(`Item "${text}" has already been in shopping list.`)
+      return
+    }
+    // Update DOM
+    editedElement.innerHTML = ''
+    editedElement.appendChild(document.createTextNode(text))
+    editedElement.appendChild(createButton())
+    // Update localStorage
+    shoppingList = shoppingList.map((item) => (item === editedText ? text : item))
+    localStorage.setItem(SHOPPING_LIST, JSON.stringify(shoppingList))
+    // Reset
+    input.value = ''
+    input.focus()
+    isUpdated = false
+    submitButton.innerHTML = ''
+    submitButton.appendChild(createIcon('fa-solid fa-check'))
+    submitButton.appendChild(document.createTextNode(' Add Item'))
   }
 }
 
 function editItem(e) {
   if (e.target.tagName === 'LI') {
     const input = document.querySelector('#input-item')
-    const button = document.querySelector('form#add-item-form button[type=submit]')
-    button.innerHTML = ''
-    const icon = document.createElement('i')
-    icon.className = 'fa-solid fa-check'
-    button.appendChild(icon)
-    button.appendChild(document.createTextNode(' Update'))
+    submitButton = document.querySelector('form#add-item-form button[type=submit]')
+    // const submitButton = document.querySelector('form#add-item-form button[type=submit]')
+    submitButton.innerHTML = ''
+    submitButton.appendChild(createIcon('fa-solid fa-check'))
+    submitButton.appendChild(document.createTextNode(' Update'))
     input.value = e.target.textContent
+    editedElement = e.target
     editedText = e.target.textContent
     isUpdated = true
   }
@@ -56,7 +79,6 @@ function editItem(e) {
 // function loadData(shoppingList, container) {
 function loadData(shoppingList, container, form, input) {
   const { list } = createElements(container)
-  // const { list } = createElements(container)
   shoppingList.forEach((text) => {
     const item = createItem(text)
     list.appendChild(item)
@@ -75,11 +97,10 @@ function createElements(container) {
   container.appendChild(clearButton)
   // Add event listeners to elemnts
   list.addEventListener('click', removeItem)
-  list.addEventListener('click', (e) => {
-    editItem(e)
-  })
+  list.addEventListener('click', editItem)
   clearButton.addEventListener('click', clearItems)
   filter.addEventListener('keyup', filterItems)
+
   return { list, filter, clearButton }
 }
 
@@ -194,12 +215,13 @@ function createItem(text) {
 function createButton() {
   const button = document.createElement('button')
   button.className = 'remove-item btn-link red-text'
-  button.appendChild(createIcon())
+  button.appendChild(createIcon('fa-solid fa-xmark'))
+  // button.appendChild(createIcon())
   return button
 }
 
-function createIcon() {
+function createIcon(classes) {
   const icon = document.createElement('i')
-  icon.className = 'fa-solid fa-xmark'
+  icon.className = classes
   return icon
 }
