@@ -3,30 +3,50 @@ const itemInput = document.getElementById('item-input')
 const itemList = document.getElementById('item-list')
 const clearBtn = document.getElementById('clear')
 const itemFilter = document.getElementById('filter')
+const formBtn = itemForm.querySelector('button')
+
+let isEditMode = false
 
 function displayItems() {
   const itemsFromStorage = getItemsFromStorage()
   itemsFromStorage.forEach((item) => {
     addItemToDOM(item)
   })
-  checkUI()
+  resetUI()
 }
 
 function onAddItemSubmit(e) {
   e.preventDefault()
-  const newItem = itemInput.value
+  const newItem = itemInput.value.trim()
+  const itemToEdit = itemList.querySelector('.edit-mode')
   // Validate input
   if (newItem === '') {
     alert('Please add an item')
     return
   }
-  // Add item to DOM
+  if (isEditMode && newItem.toLowerCase() === itemToEdit.textContent.toLowerCase()) {
+    itemToEdit.classList.remove('edit-mode')
+    resetUI()
+    isEditMode = false
+    return
+  }
+  if (checkIfItemExists(newItem)) {
+    alert('That item already exists!')
+    return
+  }
+  // Check for edit mode
+  if (isEditMode) {
+    removeItemFromStorage(itemToEdit.textContent)
+    itemToEdit.classList.remove('edit-mode')
+    itemToEdit.remove()
+    isEditMode = false
+  }
+  // Create item DOM element
   addItemToDOM(newItem)
   // Add item to local storage
   addItemToStorage(newItem)
-  checkUI()
-  // Reset
-  itemInput.value = ''
+  // Reset UI
+  resetUI()
 }
 
 function addItemToDOM(item) {
@@ -66,8 +86,28 @@ function getItemsFromStorage() {
 function onClickItem(e) {
   if (e.target.parentElement.classList.contains('remove-item')) {
     removeItem(e.target.parentElement.parentElement)
+  } else if (e.target.tagName === 'LI') {
+    setItemToEdit(e.target)
   }
 }
+
+function checkIfItemExists(item) {
+  return getItemsFromStorage()
+    .map((i) => i.toLowerCase())
+    .includes(item.toLowerCase())
+}
+
+function setItemToEdit(item) {
+  isEditMode = true
+  itemList.querySelectorAll('li').forEach((item) => item.classList.remove('edit-mode'))
+  item.classList.add('edit-mode')
+  formBtn.innerHTML = '<i class="fa-solid fa-pen"></i> Update Item'
+  formBtn.style.backgroundColor = '#228B22'
+  itemInput.value = item.textContent
+  itemInput.focus()
+}
+
+document.createElement('li').classList.add
 
 function removeItem(item) {
   if (confirm('Are you sure?')) {
@@ -75,7 +115,7 @@ function removeItem(item) {
     item.remove()
     // Remove item from storage
     removeItemFromStorage(item.textContent)
-    checkUI()
+    resetUI()
   }
 }
 
@@ -91,7 +131,7 @@ function clearItems() {
   }
   // Clear from local storage
   localStorage.removeItem('items')
-  checkUI()
+  resetUI()
 }
 
 function filterItems(e) {
@@ -102,11 +142,13 @@ function filterItems(e) {
   })
 }
 
-function checkUI() {
-  const items = itemList.querySelectorAll('li')
-  const display = items.length === 0 ? 'none' : 'block'
+function resetUI() {
+  itemInput.value = ''
+  const display = itemList.querySelectorAll('li').length === 0 ? 'none' : 'block'
   clearBtn.style.display = display
   itemFilter.style.display = display
+  formBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Add Item'
+  formBtn.style.backgroundColor = '#333'
 }
 
 // Initialize app
@@ -118,7 +160,7 @@ function init() {
   itemFilter.addEventListener('input', filterItems)
   document.addEventListener('DOMContentLoaded', displayItems)
 
-  checkUI()
+  resetUI()
 }
 
 init()
