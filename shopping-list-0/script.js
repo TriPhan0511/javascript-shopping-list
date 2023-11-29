@@ -70,20 +70,15 @@ function filterItems(e) {
   const text = e.target.value.trim().toLowerCase()
   const items = itemList.querySelectorAll('li')
   items.forEach((item) => {
-    const display = item.textContent.trim().toLowerCase().includes(text) ? 'flex' : 'none'
-    item.style.display = display
+    item.style.display = item.textContent.trim().toLowerCase().includes(text) ? 'flex' : 'none'
   })
 }
 
 function checkUI() {
   const items = itemList.querySelectorAll('li')
-  if (items.length === 0) {
-    clearBtn.style.display = 'none'
-    itemFilter.style.display = 'none'
-  } else {
-    clearBtn.style.display = 'block'
-    itemFilter.style.display = 'block'
-  }
+  const display = items.length === 0 ? 'none' : 'block'
+  clearBtn.style.display = display
+  itemFilter.style.display = display
 }
 
 // Event Listeners
@@ -93,6 +88,3 @@ clearBtn.addEventListener('click', clearItems)
 itemFilter.addEventListener('input', filterItems)
 
 checkUI()
-
-// const arr = ['a','b']
-// arr.filter(item => item.includes('a'))
