@@ -4,7 +4,15 @@ const itemList = document.getElementById('item-list')
 const clearBtn = document.getElementById('clear')
 const itemFilter = document.getElementById('filter')
 
-function addItem(e) {
+function displayItems() {
+  const itemsFromStorage = getItemsFromStorage()
+  itemsFromStorage.forEach((item) => {
+    addItemToDOM(item)
+  })
+  checkUI()
+}
+
+function onAddItemSubmit(e) {
   e.preventDefault()
   const newItem = itemInput.value
   // Validate input
@@ -12,16 +20,23 @@ function addItem(e) {
     alert('Please add an item')
     return
   }
-  //   Create list item
+  // Add item to DOM
+  addItemToDOM(newItem)
+  // Add item to local storage
+  addItemToStorage(newItem)
+  checkUI()
+  // Reset
+  itemInput.value = ''
+}
+
+function addItemToDOM(item) {
+  // Create list item
   const li = document.createElement('li')
-  li.appendChild(document.createTextNode(newItem))
+  li.appendChild(document.createTextNode(item))
   const button = createButton('remove-item btn-link text-red')
   li.appendChild(button)
   // Add li to the DOM
   itemList.appendChild(li)
-  checkUI()
-  // Reset
-  itemInput.value = ''
 }
 
 function createButton(classes) {
@@ -37,34 +52,47 @@ function createIcon(classes) {
   return icon
 }
 
-function removeItem(e) {
+function addItemToStorage(item) {
+  const itemsFromStorage = getItemsFromStorage()
+  itemsFromStorage.push(item)
+  localStorage.setItem('items', JSON.stringify(itemsFromStorage))
+}
+
+function getItemsFromStorage() {
+  const itemsFromStorage = JSON.parse(localStorage.getItem('items')) || []
+  return itemsFromStorage
+}
+
+function onClickItem(e) {
   if (e.target.parentElement.classList.contains('remove-item')) {
-    if (confirm('Are you sure?')) {
-      e.target.parentElement.parentElement.remove()
-      checkUI()
-    }
+    removeItem(e.target.parentElement.parentElement)
   }
+}
+
+function removeItem(item) {
+  if (confirm('Are you sure?')) {
+    // Remove item from DOM
+    item.remove()
+    // Remove item from storage
+    removeItemFromStorage(item.textContent)
+    checkUI()
+  }
+}
+
+function removeItemFromStorage(item) {
+  let itemsFromStorage = getItemsFromStorage()
+  itemsFromStorage = itemsFromStorage.filter((text) => text !== item)
+  localStorage.setItem('items', JSON.stringify(itemsFromStorage))
 }
 
 function clearItems() {
   while (itemList.firstChild) {
     itemList.removeChild(itemList.firstChild)
   }
+  // Clear from local storage
+  localStorage.removeItem('items')
   checkUI()
 }
-
-// function filterItems(e) {
-//   const text = e.target.value.toLowerCase()
-//   const items = itemList.querySelectorAll('li')
-//   items.forEach((item) => {
-//     const itemName = item.firstChild.textContent.toLowerCase()
-//     if (itemName.indexOf(text) !== -1) {
-//       item.style.display = 'flex'
-//     } else {
-//       item.style.display = 'none'
-//     }
-//   })
-// }
 
 function filterItems(e) {
   const text = e.target.value.trim().toLowerCase()
@@ -81,10 +109,16 @@ function checkUI() {
   itemFilter.style.display = display
 }
 
-// Event Listeners
-itemForm.addEventListener('submit', addItem)
-itemList.addEventListener('click', removeItem)
-clearBtn.addEventListener('click', clearItems)
-itemFilter.addEventListener('input', filterItems)
+// Initialize app
+function init() {
+  // Event Listeners
+  itemForm.addEventListener('submit', onAddItemSubmit)
+  itemList.addEventListener('click', onClickItem)
+  clearBtn.addEventListener('click', clearItems)
+  itemFilter.addEventListener('input', filterItems)
+  document.addEventListener('DOMContentLoaded', displayItems)
 
-checkUI()
+  checkUI()
+}
+
+init()
